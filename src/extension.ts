@@ -35,9 +35,6 @@ export async function activate(context: vscode.ExtensionContext) {
   await updateStatusBar(root, config);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('ngxModuleLinker.openPanel', async () => {
-      await openControlPanel(root, config);
-    }),
     vscode.commands.registerCommand('ngxModuleLinker.configurePath', async () => {
       await handleConfigurePath(root, config);
     }),
