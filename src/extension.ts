@@ -26,7 +26,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const isEligible = !!(root && isEligibleProject(root, config));
-  await vscode.commands.executeCommand('setContext', 'ngxModuleLinker.isEligible', true);
+  await vscode.commands.executeCommand('setContext', 'ngxModuleLinker.isEligible', isEligible);
 
   if (!root || !isEligible) {
     return;

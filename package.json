@@ -28,7 +28,8 @@
         {
           "id": "ngxModuleLinker",
           "title": "NGX Module Linker",
-          "icon": "images/activity-bar-icon.svg"
+          "icon": "images/activity-bar-icon.svg",
+          "when": "ngxModuleLinker.isEligible"
         }
       ]
     },
