@@ -24,8 +24,6 @@ This is designed for teams who share a single `ngx-module` library across severa
 
 ## Quick visual tour
 
-> Replace the image paths below with your real screenshots or GIFs.
-
 1. **Overview – status bar and commands**  
    ![Screenshot: VS Code with ngx-module status bar item and command palette](images/quick-tour/overview.png)
 
