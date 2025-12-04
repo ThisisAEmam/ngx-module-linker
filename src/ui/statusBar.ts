@@ -8,7 +8,7 @@ let statusBarItem: vscode.StatusBarItem | undefined;
 export async function updateStatusBar(projectRoot: string, config: vscode.WorkspaceConfiguration): Promise<void> {
   if (!statusBarItem) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = 'ngxModuleLinker.openPanel';
+    statusBarItem.command = 'ngxModuleLinker.focusView';
     statusBarItem.show();
   }
 

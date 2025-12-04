@@ -23,26 +23,49 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ngxModuleLinker",
+          "title": "Ngx Module Linker",
+          "icon": "images/activity-bar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ngxModuleLinker": [
+        {
+          "id": "ngxModuleLinker.view",
+          "name": "Panel",
+          "type": "webview",
+          "icon": "images/activity-bar-icon.svg"
+        }
+      ]
+    },
     "commands": [
       {
+        "command": "ngxModuleLinker.focusView",
+        "title": "Ngx Module Linker: Focus View"
+      },
+      {
         "command": "ngxModuleLinker.openPanel",
-        "title": "Ngx Module: Open Panel"
+        "title": "Ngx Module Linker: Open Panel"
       },
       {
         "command": "ngxModuleLinker.configurePath",
-        "title": "Ngx Module: Configure ngx-module Path"
+        "title": "Ngx Module Linker: Configure ngx-module Path"
       },
       {
         "command": "ngxModuleLinker.switchBranch",
-        "title": "Ngx Module: Switch Branch"
+        "title": "Ngx Module Linker: Switch Branch"
       },
       {
         "command": "ngxModuleLinker.buildLib",
-        "title": "Ngx Module: Build Library"
+        "title": "Ngx Module Linker: Build Library"
       },
       {
         "command": "ngxModuleLinker.buildAndLinkLib",
-        "title": "Ngx Module: Build and Link"
+        "title": "Ngx Module Linker: Build and Link"
       }
     ],
     "configuration": {

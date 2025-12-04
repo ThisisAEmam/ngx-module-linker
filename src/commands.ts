@@ -67,13 +67,23 @@ export async function handleSwitchBranch(config: vscode.WorkspaceConfiguration) 
     return;
   }
 
-  let branches: string[] = [];
-  try {
-    branches = await listBranches(ngxPath);
-  } catch (e: any) {
-    vscode.window.showErrorMessage(`Ngx Module Linker: Failed to list branches: ${e.stderr ?? e}`);
-    return;
-  }
+  const branches = await vscode.window.withProgress<string[]>(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'Ngx Module Linker: Fetching branches…',
+      cancellable: false
+    },
+    async () => {
+      try {
+        return await listBranches(ngxPath);
+      } catch (e: any) {
+        vscode.window.showErrorMessage(
+          `Ngx Module Linker: Failed to list branches: ${e.stderr ?? e}`
+        );
+        return [];
+      }
+    }
+  );
 
   if (branches.length === 0) {
     vscode.window.showInformationMessage('Ngx Module Linker: No branches found.');
@@ -81,7 +91,7 @@ export async function handleSwitchBranch(config: vscode.WorkspaceConfiguration) 
   }
 
   const pick = await vscode.window.showQuickPick(branches, {
-    placeHolder: 'Select a branch for ngx-module'
+    placeHolder: 'Select a branch'
   });
   if (!pick) {
     return;

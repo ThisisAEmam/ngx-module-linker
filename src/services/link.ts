@@ -13,9 +13,12 @@ export function isLinked(projectRoot: string, ngxModulePath: string): boolean {
     if (!stat.isSymbolicLink()) {
       return false;
     }
-    const target = fs.readlinkSync(nodeModulePath);
-    const expected = path.join(ngxModulePath, NGX_DIST_RELATIVE);
-    return path.resolve(target) === path.resolve(expected);
+    // npm link usually creates a symlink into the global node_modules, which
+    // in turn may point to the actual dist folder. Resolve the real path so we
+    // follow the entire symlink chain and compare against the expected dist.
+    const realTarget = fs.realpathSync(nodeModulePath);
+    const expected = path.resolve(path.join(ngxModulePath, NGX_DIST_RELATIVE));
+    return path.resolve(realTarget) === expected;
   } catch {
     return false;
   }
