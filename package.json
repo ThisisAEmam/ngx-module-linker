@@ -1,0 +1,76 @@
+{
+  "name": "ngx-module-linker",
+  "displayName": "Ngx Module Linker",
+  "description": "Internal helper to build and link ngx-module into selected Angular projects.",
+  "version": "0.0.1",
+  "publisher": "your-company",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:package.json",
+    "onCommand:ngxModuleLinker.configurePath",
+    "onCommand:ngxModuleLinker.switchBranch",
+    "onCommand:ngxModuleLinker.buildLib",
+    "onCommand:ngxModuleLinker.buildAndLinkLib"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ngxModuleLinker.configurePath",
+        "title": "Ngx Module: Configure ngx-module Path"
+      },
+      {
+        "command": "ngxModuleLinker.switchBranch",
+        "title": "Ngx Module: Switch Branch"
+      },
+      {
+        "command": "ngxModuleLinker.buildLib",
+        "title": "Ngx Module: Build Library"
+      },
+      {
+        "command": "ngxModuleLinker.buildAndLinkLib",
+        "title": "Ngx Module: Build and Link"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Ngx Module Linker",
+      "properties": {
+        "ngxModuleLinker.ngxModulePath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the ngx-module project root (containing package.json and distribution/ngx-lib)."
+        },
+        "ngxModuleLinker.allowedProjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "ecare"
+          ],
+          "description": "List of package.json name values for projects that are allowed to link to ngx-module. repoOwner must be @VFDE-Digital/team-webfactory-write."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "echo 'no lint configured'",
+    "test": "echo 'no tests yet'",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.93.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.26.0"
+  }
+}
