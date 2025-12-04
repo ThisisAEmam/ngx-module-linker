@@ -12,23 +12,22 @@ export function getWorkspaceRoot(): string | undefined {
 }
 
 export function isEligibleProject(root: string, config: vscode.WorkspaceConfiguration): boolean {
-  return true;
-  // const pkgPath = path.join(root, 'package.json');
-  // if (!fs.existsSync(pkgPath)) {
-  //   return false;
-  // }
+  const pkgPath = path.join(root, 'package.json');
+  if (!fs.existsSync(pkgPath)) {
+    return false;
+  }
 
-  // try {
-  //   const raw = fs.readFileSync(pkgPath, 'utf8');
-  //   const pkg = JSON.parse(raw);
-  //   const repoOwner = pkg.repoOwner as string | undefined;
-  //   const name = pkg.name as string | undefined;
-  //   if (repoOwner === REPO_OWNER && name && ALLOWED_PROJECT_NAMES.includes(name)) {
-  //     return true;
-  //   }
-  // } catch {
-  //   return false;
-  // }
+  try {
+    const raw = fs.readFileSync(pkgPath, 'utf8');
+    const pkg = JSON.parse(raw);
+    const repoOwner = pkg.repoOwner as string | undefined;
+    const name = pkg.name as string | undefined;
+    if (repoOwner === REPO_OWNER && name && ALLOWED_PROJECT_NAMES.includes(name)) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
 
-  // return false;
+  return false;
 }
