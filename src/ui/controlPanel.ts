@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { readNgxModulePath, getNgxModulePath } from '../services/config';
 import { getCurrentBranch } from '../services/git';
 import { isLinked } from '../services/link';
-import { handleBuildLib, handleBuildAndLink, handleSwitchBranch } from '../commands';
+import { handleBuildLib, handleBuildAndLink, handleSwitchBranch, handleLink } from '../commands';
 import { updateStatusBar } from './statusBar';
 
 interface PanelState {
@@ -45,6 +45,12 @@ export async function openControlPanel(projectRoot: string, config: vscode.Works
         }
         case 'buildAndLink': {
           await handleBuildAndLink(config);
+          await updateStatusBar(projectRoot, config);
+          await refresh(projectRoot, config);
+          break;
+        }
+        case 'link': {
+          await handleLink(config);
           await updateStatusBar(projectRoot, config);
           await refresh(projectRoot, config);
           break;
@@ -189,10 +195,10 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       background-color: var(--vscode-button-background);
       color: var(--vscode-button-foreground);
     }
-    button.secondary {
-      background-color: transparent;
-      color: var(--vscode-foreground);
-      border-color: var(--vscode-input-border);
+    button.primary {
+      background-color: #e60000;
+      color: #fff;
+      border-color: #e60000;
     }
     button:disabled {
       opacity: 0.6;
@@ -248,11 +254,11 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
         <div class="label">Ngx Module path</div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <input class="settings-input" id="ngxPathInput" value="" />
-          <button class="secondary" id="browsePathBtn">Browse…</button>
+          <button id="browsePathBtn">Browse</button>
         </div>
         <div class="subtitle">This value is stored in the VS Code setting <code>ngxModuleLinker.ngxModulePath</code>.</div>
         <div class="settings-actions">
-          <button class="secondary" id="settingsCancelBtn">Cancel</button>
+          <button id="settingsCancelBtn">Cancel</button>
           <button id="settingsSaveBtn">Save</button>
         </div>
       </div>
@@ -278,9 +284,10 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       <div class="section">
         <div class="label">Actions</div>
         <div class="button-row">
-          <button id="buildLibBtn">Build library</button>
-          <button id="buildAndLinkBtn">Build &amp; Link into this project</button>
-          <button class="secondary" id="changeBranchBtn">Change Git branch</button>
+          <button class="primary" id="buildLibBtn">Build</button>
+          <button class="primary" id="linkBtn">Link</button>
+          <button class="primary" id="buildAndLinkBtn">Build &amp; Link</button>
+          <button id="changeBranchBtn">Change Git branch</button>
         </div>
       </div>
       <div class="tabs">
@@ -297,12 +304,12 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
         <div class="label">Ngx-module path</div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <input class="settings-input" id="ngxPathInput" value="${state.ngxPath ?? ''}" />
-          <button id="browsePathBtn">Browse</button>
+          <button class="primary" id="browsePathBtn">Browse</button>
         </div>
         <div class="subtitle">This value is stored in the VS Code setting <code>ngxModuleLinker.ngxModulePath</code>.</div>
         <div class="settings-actions">
           <button id="settingsCancelBtn">Cancel</button>
-          <button id="settingsSaveBtn">Save</button>
+          <button class="primary" id="settingsSaveBtn">Save</button>
         </div>
       </div>
       <div class="tabs">
@@ -332,6 +339,13 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       if (buildLibBtn) {
         buildLibBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'buildLib' });
+        });
+      }
+
+      const linkBtn = document.getElementById('linkBtn');
+      if (linkBtn) {
+        linkBtn.addEventListener('click', () => {
+          vscode.postMessage({ type: 'link' });
         });
       }
 

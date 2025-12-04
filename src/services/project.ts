@@ -20,9 +20,9 @@ export function isEligibleProject(root: string, config: vscode.WorkspaceConfigur
   try {
     const raw = fs.readFileSync(pkgPath, 'utf8');
     const pkg = JSON.parse(raw);
-    const repoOwner = pkg.repoOwner as string | undefined;
+    const repoOwners = pkg.repoOwner as string[] | undefined;
     const name = pkg.name as string | undefined;
-    if (repoOwner === REPO_OWNER && name && ALLOWED_PROJECT_NAMES.includes(name)) {
+    if (repoOwners?.[0] === REPO_OWNER && name && ALLOWED_PROJECT_NAMES.includes(name)) {
       return true;
     }
   } catch {

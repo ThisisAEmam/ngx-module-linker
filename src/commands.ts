@@ -14,10 +14,47 @@ function getOrCreateTerminal(name: string): vscode.Terminal {
   return vscode.window.createTerminal(name);
 }
 
-export async function handleConfigurePath(projectRoot: string, config: vscode.WorkspaceConfiguration) {
+async function requireNgxPath(
+  config: vscode.WorkspaceConfiguration,
+  warningMessage = 'Ngx Module Linker: ngx module path not configured.'
+): Promise<string | undefined> {
   const ngxPath = await getNgxModulePath(config);
   if (!ngxPath) {
-    vscode.window.showWarningMessage('Ngx Module Linker: ngx-module path not configured.');
+    vscode.window.showWarningMessage(warningMessage);
+    return undefined;
+  }
+  return ngxPath;
+}
+
+async function requireNgxPathAndRoot(
+  config: vscode.WorkspaceConfiguration
+): Promise<{ ngxPath: string; root: string } | undefined> {
+  const ngxPath = await requireNgxPath(config);
+  if (!ngxPath) {
+    return undefined;
+  }
+
+  const root = getWorkspaceRoot();
+  if (!root) {
+    vscode.window.showWarningMessage('Ngx Module Linker: No workspace folder detected.');
+    return undefined;
+  }
+
+  return { ngxPath, root };
+}
+
+function runTerminalCommands(cwd: string, commands: string[]): void {
+  const terminal = getOrCreateTerminal('ngx-module');
+  terminal.show(true);
+  terminal.sendText(`cd "${cwd}"`);
+  for (const cmd of commands) {
+    terminal.sendText(cmd);
+  }
+}
+
+export async function handleConfigurePath(projectRoot: string, config: vscode.WorkspaceConfiguration) {
+  const ngxPath = await requireNgxPath(config);
+  if (!ngxPath) {
     return;
   }
   vscode.window.showInformationMessage(`Ngx Module Linker: Using ngx-module at ${ngxPath}`);
@@ -25,9 +62,8 @@ export async function handleConfigurePath(projectRoot: string, config: vscode.Wo
 }
 
 export async function handleSwitchBranch(config: vscode.WorkspaceConfiguration) {
-  const ngxPath = await getNgxModulePath(config);
+  const ngxPath = await requireNgxPath(config);
   if (!ngxPath) {
-    vscode.window.showWarningMessage('Ngx Module Linker: ngx-module path not configured.');
     return;
   }
 
@@ -65,38 +101,42 @@ export async function handleSwitchBranch(config: vscode.WorkspaceConfiguration) 
 }
 
 export async function handleBuildLib(config: vscode.WorkspaceConfiguration) {
-  const ngxPath = await getNgxModulePath(config);
+  const ngxPath = await requireNgxPath(config);
   if (!ngxPath) {
-    vscode.window.showWarningMessage('Ngx Module Linker: ngx-module path not configured.');
     return;
   }
 
-  const terminal = getOrCreateTerminal('ngx-module');
-  terminal.show(true);
-  terminal.sendText(`cd "${ngxPath}"`);
-  terminal.sendText('npm run build:lib');
+  runTerminalCommands(ngxPath, ['npm run build:lib']);
 }
 
 export async function handleBuildAndLink(config: vscode.WorkspaceConfiguration) {
-  const ngxPath = await getNgxModulePath(config);
-  if (!ngxPath) {
-    vscode.window.showWarningMessage('Ngx Module Linker: ngx-module path not configured.');
+  const ctx = await requireNgxPathAndRoot(config);
+  if (!ctx) {
     return;
   }
 
-  const root = getWorkspaceRoot();
-  if (!root) {
-    vscode.window.showWarningMessage('Ngx Module Linker: No workspace folder detected.');
-    return;
-  }
-
-  const ngxDist = path.join(ngxPath, NGX_DIST_RELATIVE);
+  const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
   const terminal = getOrCreateTerminal('ngx-module');
   terminal.show(true);
-  terminal.sendText(`cd "${ngxPath}"`);
+  terminal.sendText(`cd "${ctx.ngxPath}"`);
   terminal.sendText('npm run build:lib');
   terminal.sendText(`cd "${ngxDist}"`);
   terminal.sendText('npm link');
-  terminal.sendText(`cd "${root}"`);
+  terminal.sendText(`cd "${ctx.root}"`);
+  terminal.sendText(`npm link "${NGX_PACKAGE_NAME}"`);
+}
+
+export async function handleLink(config: vscode.WorkspaceConfiguration) {
+  const ctx = await requireNgxPathAndRoot(config);
+  if (!ctx) {
+    return;
+  }
+
+  const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
+  const terminal = getOrCreateTerminal('ngx-module');
+  terminal.show(true);
+  terminal.sendText(`cd "${ngxDist}"`);
+  terminal.sendText('npm link');
+  terminal.sendText(`cd "${ctx.root}"`);
   terminal.sendText(`npm link "${NGX_PACKAGE_NAME}"`);
 }

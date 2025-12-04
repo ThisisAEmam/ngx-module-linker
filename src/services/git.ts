@@ -39,7 +39,7 @@ export async function listBranches(ngxModulePath: string): Promise<string[]> {
 export async function checkoutBranch(ngxModulePath: string, branch: string): Promise<void> {
   // First try to checkout as a local branch.
   try {
-    await execInDir(`git rev-parse --verify ${branch}`, ngxModulePath);
+    await execInDir(`git rev-parse --verify refs/heads/${branch}`, ngxModulePath);
     await execInDir(`git checkout ${branch}`, ngxModulePath);
     return;
   } catch {
