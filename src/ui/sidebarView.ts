@@ -58,35 +58,19 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
         }
         case 'link': {
           await handleLink(this.config);
-          if (this.projectRoot) {
-            await updateStatusBar(this.projectRoot, this.config);
-          }
-          await this.refresh();
           break;
         }
         case 'buildAndLink': {
           await handleBuildAndLink(this.config);
-          if (this.projectRoot) {
-            await updateStatusBar(this.projectRoot, this.config);
-          }
-          await this.refresh();
           break;
         }
         case 'changeBranch': {
           await handleSwitchBranch(this.config);
-          if (this.projectRoot) {
-            await updateStatusBar(this.projectRoot, this.config);
-          }
-          await this.refresh();
           break;
         }
         case 'savePath': {
           if (typeof message.path === 'string') {
             await this.config.update('ngxModulePath', message.path, vscode.ConfigurationTarget.Global);
-            if (this.projectRoot) {
-              await updateStatusBar(this.projectRoot, this.config);
-            }
-            await this.refresh();
           }
           break;
         }
@@ -100,31 +84,37 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
           if (pick && pick.length > 0) {
             const selected = pick[0].fsPath;
             await this.config.update('ngxModulePath', selected, vscode.ConfigurationTarget.Global);
-            if (this.projectRoot) {
-              await updateStatusBar(this.projectRoot, this.config);
-            }
-            await this.refresh();
           }
           break;
         }
         case 'configurePath': {
           await getNgxModulePath(this.config);
-          if (this.projectRoot) {
-            await updateStatusBar(this.projectRoot, this.config);
-          }
-          await this.refresh();
           break;
         }
         case 'refresh': {
-          await this.refresh();
           break;
         }
         default:
           break;
       }
+      await this.refreshAndUpdateStatusBar();
+    });
+
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        void this.refreshAndUpdateStatusBar();
+      }
     });
 
     return this.refresh();
+  }
+
+
+  public async refreshAndUpdateStatusBar(): Promise<void> {
+    if (this.projectRoot) {
+      await updateStatusBar(this.projectRoot, this.config);
+    }
+    await this.refresh();
   }
 
   public async refresh(): Promise<void> {
@@ -179,6 +169,12 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
     }
     .value {
       opacity: 0.9;
+    }
+    .status-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
     }
     .status-pill {
       display: inline-block;
@@ -249,6 +245,12 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
     button.secondary:hover {
       background-color: var(--vscode-button-secondaryHoverBackground);
       border-color: var(--vscode-button-border, transparent);
+    }
+    button#refreshBtn {
+      width: fit-content;
+      flex: none;
+      border-radius: 999px;
+      padding: 4px;
     }
     .tabs {
       display: flex;
@@ -330,7 +332,14 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       </div>
       <div class="section">
         <div class="label">Status</div>
-        <div class="status-pill">${linkStatus}</div>
+        <div class="status-row">
+          <div class="status-pill">${linkStatus}</div>
+          <button id="refreshBtn" title="Refresh Status">
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align: text-bottom; fill: currentColor;">
+              <path d="M8 1.5c-1.3 0-2.6.46-3.6 1.3A5 5 0 002.1 7h1.4a3.7 3.7 0 011.1-2.5A3.6 3.6 0 018 3.1c.8 0 1.6.27 2.2.77l-1.4 1.4H13V1.8l-1.4 1.4A5.1 5.1 0 008 1.5zm4.9 7.5h-1.4A3.7 3.7 0 0110.4 12 3.6 3.6 0 018 12.9a3.6 3.6 0 01-2.2-.77l1.4-1.4H3v4.4l1.4-1.4A5.1 5.1 0 008 14.5c1.3 0 2.6-.46 3.6-1.3A5 5 0 0013.9 9z" />
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="section">
         <div class="label">Actions</div>
@@ -412,6 +421,13 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       if (changeBranchBtn) {
         changeBranchBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'changeBranch' });
+        });
+      }
+
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          vscode.postMessage({ type: 'refresh' });
         });
       }
 
