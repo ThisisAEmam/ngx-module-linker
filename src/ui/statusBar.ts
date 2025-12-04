@@ -14,7 +14,7 @@ export async function updateStatusBar(projectRoot: string, config: vscode.Worksp
 
   const ngxPath = readNgxModulePath(config);
   if (!ngxPath) {
-    statusBarItem.text = '$(git-branch) ngx: not configured';
+    statusBarItem.text = '$(git-branch) NGX: Not Configured';
     statusBarItem.tooltip = 'Ngx Module Linker: Click to configure ngx module path in settings.';
     statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
     statusBarItem.show();
@@ -24,9 +24,9 @@ export async function updateStatusBar(projectRoot: string, config: vscode.Worksp
   const branch = await getCurrentBranch(ngxPath);
   const linked = isLinked(projectRoot, ngxPath);
 
-  const branchLabel = branch ?? 'no-git';
-  const linkedLabel = linked ? 'linked' : 'unlinked';
-  statusBarItem.text = `$(git-branch) ngx: ${branchLabel} [${linkedLabel}]`;
+  const branchLabel = branch ?? 'No Git';
+  const linkedLabel = linked ? 'Linked' : 'Not Linked';
+  statusBarItem.text = `$(git-branch) NGX: ${branchLabel} [${linkedLabel}]`;
   statusBarItem.tooltip = 'Ngx Module Linker | Click to open panel.';
   statusBarItem.backgroundColor = linked
     ? undefined
