@@ -155,22 +155,21 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
 
   private async validateNgxPathAndRefresh() {
     const ngxPath = await getNgxModulePath(this.config);
-    if (!ngxPath) {
-      return;
-    }
-    const result = await validateNgxPathAndGetRoot(ngxPath);
-    if (!result.ok) {
-      await this.config.update('ngxModulePath', undefined, vscode.ConfigurationTarget.Global);
-      vscode.window.showErrorMessage(`Ngx Module Linker: ${result.error}`);
+    if (ngxPath) {
+      const result = await validateNgxPathAndGetRoot(ngxPath);
+      if (!result.ok) {
+        await this.config.update('ngxModulePath', undefined, vscode.ConfigurationTarget.Global);
+        vscode.window.showErrorMessage(`Ngx Module Linker: ${result.error}`);
+      }
     }
     await this.refreshAndUpdateStatusBar();
   }
 
   public async refreshAndUpdateStatusBar(): Promise<void> {
+    await this.refresh();
     if (this.projectRoot) {
       await updateStatusBar(this.projectRoot, this.config);
     }
-    await this.refresh();
   }
 
   public async refresh(): Promise<void> {
@@ -192,7 +191,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
   const linkStatus = state.linked ? 'Linked' : 'Not Linked';
   const disableNgxActionsAttr = state.isNgxProject ? 'disabled' : '';
   const ngxWarningHtml = state.isNgxProject
-    ? '<div class="section section-xl"><p class="subtitle warning">The currently opened window is the NGX module project. Build/Link actions are disabled.</p></div>'
+    ? '<div class="section section-xl"><p class="subtitle warning">The currently opened window is the NGX module project. Open Window and Build/Link actions are disabled.</p></div>'
     : '';
 
   const nonce = Date.now().toString();
@@ -243,8 +242,10 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       justify-content: space-between;
     }
     .status-pill {
-      display: inline-block;
-      padding: 5px 10px 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 600;
@@ -256,12 +257,15 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
     .current-branch {
       padding: 6px 10px;
       border-radius: 5px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      width: fit-content;
+      line-height: 1.5;
       background-color: var(--vscode-button-secondaryBackground);
       color: var(--vscode-button-secondaryForeground);
       margin: 6px 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
     }
     .button-row {
       display: flex;
@@ -431,8 +435,8 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       <div class="section">
         <div class="label">Development</div>
         <div class="button-row">
-          <button id="openNgxModuleBtn" ${disableNgxActionsAttr}>Open Window for NGX Module</button>
-          <button id="npmStartBtn">npm start</button>
+          <button id="openNgxModuleBtn" ${disableNgxActionsAttr}>Open Window</button>
+          <button id="npmStartBtn">Start NGX</button>
         </div>
       </div>
       <div class="section">
@@ -460,11 +464,11 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
           <input class="settings-input" id="ngxPathInput" value="${state.ngxPath ?? ''}" />
           <button id="browsePathBtn">Browse</button>
         </div>
-        <div class="subtitle">This value is stored in the VS Code setting <code>ngxModuleLinker.ngxModulePath</code>.</div>
         <div class="settings-actions">
           <button class="secondary" id="settingsCancelBtn">Cancel</button>
           <button id="settingsSaveBtn">Save</button>
         </div>
+        <div class="subtitle" style="line-height: 1.5;">This value is stored in the VS Code setting <code>ngxModuleLinker.ngxModulePath</code>.</div>
         <p id="pathError" class="settings-error" style="display:none;"></p>
       </div>
     </div>
