@@ -16,5 +16,6 @@ export const ALLOWED_PROJECT_NAMES: string[] = [
   'e-quotation',
   'cable-onboarding',
   'fiber-onboarding',
-  'um-onboarding'
+  'um-onboarding',
+  NGX_PACKAGE_NAME
 ];

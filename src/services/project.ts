@@ -22,7 +22,7 @@ export function isEligibleProject(root: string, config: vscode.WorkspaceConfigur
     const pkg = JSON.parse(raw);
     const repoOwners = pkg.repoOwner as string[] | undefined;
     const name = pkg.name as string | undefined;
-    if (repoOwners?.[0] === REPO_OWNER && name && ALLOWED_PROJECT_NAMES.includes(name)) {
+    if (repoOwners?.find(owner => owner === REPO_OWNER) && name && ALLOWED_PROJECT_NAMES.includes(name)) {
       return true;
     }
   } catch {

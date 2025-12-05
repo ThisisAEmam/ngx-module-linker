@@ -6,8 +6,11 @@ import {
   handleBuildLib,
   handleBuildAndLink,
   handleSwitchBranch,
-  handleConfigurePath,
-  handleLink
+  handleLink,
+  validateNgxPathAndGetRoot,
+  handleOpenNgxWindow,
+  handleNpmStart,
+  isCurrentWorkspaceNgxProject
 } from '../commands';
 import { updateStatusBar } from './statusBar';
 
@@ -15,15 +18,18 @@ interface PanelState {
   ngxPath?: string;
   branch?: string;
   linked: boolean;
+  isNgxProject: boolean;
 }
 
 async function loadState(projectRoot: string | undefined, config: vscode.WorkspaceConfiguration): Promise<PanelState> {
   const ngxPath = readNgxModulePath(config);
+  const isNgxProject = await isCurrentWorkspaceNgxProject();
   if (!ngxPath) {
     return {
       ngxPath: undefined,
       branch: undefined,
-      linked: false
+      linked: false,
+      isNgxProject
     };
   }
 
@@ -33,7 +39,8 @@ async function loadState(projectRoot: string | undefined, config: vscode.Workspa
   return {
     ngxPath,
     branch,
-    linked
+    linked,
+    isNgxProject
   };
 }
 
@@ -51,6 +58,8 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
     };
 
     webviewView.webview.onDidReceiveMessage(async message => {
+      let shouldRefresh = true;
+
       switch (message.type) {
         case 'buildLib': {
           await handleBuildLib(this.config);
@@ -68,9 +77,27 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
           await handleSwitchBranch(this.config);
           break;
         }
+        case 'openNgxModule': {
+          await handleOpenNgxWindow(this.config);
+          break;
+        }
+        case 'npmStart': {
+          await handleNpmStart(this.config);
+          break;
+        }
         case 'savePath': {
           if (typeof message.path === 'string') {
-            await this.config.update('ngxModulePath', message.path, vscode.ConfigurationTarget.Global);
+            const result = await validateNgxPathAndGetRoot(message.path);
+            if (!result.ok) {
+              shouldRefresh = false;
+              vscode.window.showErrorMessage(`Ngx Module Linker: ${result.error}`);
+              this.view?.webview.postMessage({
+                type: 'pathValidationError',
+                message: result.error
+              });
+            } else {
+              await this.config.update('ngxModulePath', result.rootPath, vscode.ConfigurationTarget.Global);
+            }
           }
           break;
         }
@@ -83,7 +110,17 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
           });
           if (pick && pick.length > 0) {
             const selected = pick[0].fsPath;
-            await this.config.update('ngxModulePath', selected, vscode.ConfigurationTarget.Global);
+            const result = await validateNgxPathAndGetRoot(selected);
+            if (!result.ok) {
+              shouldRefresh = false;
+              vscode.window.showErrorMessage(`Ngx Module Linker: ${result.error}`);
+              this.view?.webview.postMessage({
+                type: 'pathValidationError',
+                message: result.error
+              });
+            } else {
+              await this.config.update('ngxModulePath', result.rootPath, vscode.ConfigurationTarget.Global);
+            }
           }
           break;
         }
@@ -97,18 +134,37 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
         default:
           break;
       }
-      await this.refreshAndUpdateStatusBar();
-    });
 
-    webviewView.onDidChangeVisibility(() => {
-      if (webviewView.visible) {
-        void this.refreshAndUpdateStatusBar();
+      if (shouldRefresh) {
+        await this.refreshAndUpdateStatusBar();
       }
     });
+
+    webviewView.onDidChangeVisibility(async () => {
+      if (webviewView.visible) {
+        void this.validateNgxPathAndRefresh();
+      }
+    });
+
+    if (webviewView.visible) {
+      void this.validateNgxPathAndRefresh();
+    }
 
     return this.refresh();
   }
 
+  private async validateNgxPathAndRefresh() {
+    const ngxPath = await getNgxModulePath(this.config);
+    if (!ngxPath) {
+      return;
+    }
+    const result = await validateNgxPathAndGetRoot(ngxPath);
+    if (!result.ok) {
+      await this.config.update('ngxModulePath', undefined, vscode.ConfigurationTarget.Global);
+      vscode.window.showErrorMessage(`Ngx Module Linker: ${result.error}`);
+    }
+    await this.refreshAndUpdateStatusBar();
+  }
 
   public async refreshAndUpdateStatusBar(): Promise<void> {
     if (this.projectRoot) {
@@ -134,6 +190,10 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
   const hasPath = !!state.ngxPath;
   const currentBranch = state.branch ?? 'Unknown';
   const linkStatus = state.linked ? 'Linked' : 'Not Linked';
+  const disableNgxActionsAttr = state.isNgxProject ? 'disabled' : '';
+  const ngxWarningHtml = state.isNgxProject
+    ? '<div class="section section-xl"><p class="subtitle warning">The currently opened window is the NGX module project. Build/Link actions are disabled.</p></div>'
+    : '';
 
   const nonce = Date.now().toString();
 
@@ -159,9 +219,15 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       margin-bottom: 10px;
       margin-top: 4px;
     }
+    .warning {
+      color: var(--vscode-editorWarning-foreground);
+    }
     .section {
       margin-bottom: 10px;
       font-size: 11px;
+    }
+    .section-xl {
+      margin-top: 16px;
     }
     .label {
       font-weight: 600;
@@ -228,6 +294,17 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       color: #fff;
       transform: translateY(-1px);
     }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    button:disabled:hover {
+      box-shadow: none;
+      opacity: 0.5;
+      transform: none;
+    }
     button.primary {
       background-color: var(--vscode-testing-iconErrored);
       color: #fff;
@@ -293,6 +370,11 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       gap: 8px;
       justify-content: flex-end;
     }
+    .settings-error {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--vscode-errorForeground);
+    }
   `;
 
   const contentIfNoPath = `
@@ -312,6 +394,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
           <button class="secondary" id="settingsCancelBtn">Cancel</button>
           <button id="settingsSaveBtn">Save</button>
         </div>
+        <p id="pathError" class="settings-error" style="display:none;"></p>
       </div>
     </div>
   `;
@@ -321,14 +404,6 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       <div class="tabs">
         <div class="tab active" data-tab="linker">Linker</div>
         <div class="tab inactive" data-tab="settings">Settings</div>
-      </div>
-      <div class="section">
-        <div class="label">Ngx module path</div>
-        <div class="value">${state.ngxPath}</div>
-      </div>
-      <div class="section">
-        <div class="label">Current branch</div>
-        <div class="value current-branch">${currentBranch}</div>
       </div>
       <div class="section">
         <div class="label">Status</div>
@@ -342,11 +417,9 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
         </div>
       </div>
       <div class="section">
-        <div class="label">Actions</div>
+        <div class="label">Current branch</div>
+        <div class="value current-branch">${currentBranch}</div>
         <div class="button-row">
-          <button id="buildLibBtn">Build</button>
-          <button id="linkBtn">Link</button>
-          <button id="buildAndLinkBtn">Build & Link</button>
           <button id="changeBranchBtn">
             <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align: text-bottom; margin-right: 4px; fill: currentColor;">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
@@ -354,6 +427,22 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
             Change Git branch
           </button>
         </div>
+      </div>
+      <div class="section">
+        <div class="label">Development</div>
+        <div class="button-row">
+          <button id="openNgxModuleBtn" ${disableNgxActionsAttr}>Open Window for NGX Module</button>
+          <button id="npmStartBtn">npm start</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Build/Link</div>
+        <div class="button-row">
+          <button id="buildLibBtn" ${disableNgxActionsAttr}>Build</button>
+          <button id="linkBtn" ${disableNgxActionsAttr}>Link</button>
+          <button id="buildAndLinkBtn" ${disableNgxActionsAttr}>Build & Link</button>
+        </div>
+        ${ngxWarningHtml}
       </div>
     </div>
   `;
@@ -376,6 +465,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
           <button class="secondary" id="settingsCancelBtn">Cancel</button>
           <button id="settingsSaveBtn">Save</button>
         </div>
+        <p id="pathError" class="settings-error" style="display:none;"></p>
       </div>
     </div>
   `;
@@ -465,6 +555,8 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       const saveBtn = document.getElementById('settingsSaveBtn');
       const cancelBtn = document.getElementById('settingsCancelBtn');
       const browseBtn = document.getElementById('browsePathBtn');
+      const openNgxModuleBtn = document.getElementById('openNgxModuleBtn');
+      const npmStartBtn = document.getElementById('npmStartBtn');
 
       if (saveBtn && input) {
         saveBtn.addEventListener('click', () => {
@@ -483,9 +575,35 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
           vscode.postMessage({ type: 'browsePath' });
         });
       }
+
+      if (openNgxModuleBtn) {
+        openNgxModuleBtn.addEventListener('click', () => {
+          vscode.postMessage({ type: 'openNgxModule' });
+        });
+      }
+
+      if (npmStartBtn) {
+        npmStartBtn.addEventListener('click', () => {
+          vscode.postMessage({ type: 'npmStart' });
+        });
+      }
     }
 
     window.addEventListener('load', bindEvents);
+
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (!message) {
+        return;
+      }
+      if (message.type === 'pathValidationError') {
+        const errorEl = document.getElementById('pathError');
+        if (errorEl) {
+          errorEl.textContent = message.message || '';
+          errorEl.style.display = message.message ? '' : 'none';
+        }
+      }
+    });
   </script>
 </body>
 </html>`;

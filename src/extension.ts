@@ -1,13 +1,15 @@
 import * as vscode from 'vscode';
 import { getWorkspaceRoot, isEligibleProject } from './services/project';
 import { updateStatusBar, disposeStatusBar } from './ui/statusBar';
-import { openControlPanel } from './ui/controlPanel';
 import { NgxSidebarProvider } from './ui/sidebarView';
 import {
   handleConfigurePath,
   handleSwitchBranch,
   handleBuildLib,
-  handleBuildAndLink
+  handleBuildAndLink,
+  handleOpenNgxWindow,
+  handleNpmStart,
+  handleLink
 } from './commands';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -44,10 +46,19 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('ngxModuleLinker.buildLib', async () => {
       await handleBuildLib(config);
     }),
+    vscode.commands.registerCommand('ngxModuleLinker.link', async () => {
+      await handleLink(config);
+    }),
     vscode.commands.registerCommand('ngxModuleLinker.buildAndLink', async () => {
       await handleBuildAndLink(config);
       await updateStatusBar(root, config);
-    })
+    }),
+    vscode.commands.registerCommand('ngxModuleLinker.openNgxWindow', async () => {
+      await handleOpenNgxWindow(config);
+    }),
+    vscode.commands.registerCommand('ngxModuleLinker.npmStart', async () => {
+      await handleNpmStart(config);
+    }),
   );
 }
 
