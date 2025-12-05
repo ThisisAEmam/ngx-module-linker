@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { readNgxModulePath } from '../services/config';
+import { getNgxModulePath } from '../services/config';
 import { getCurrentBranch } from '../services/git';
 import { isLinked } from '../services/link';
 
@@ -12,7 +12,7 @@ export async function updateStatusBar(projectRoot: string, config: vscode.Worksp
     statusBarItem.show();
   }
 
-  const ngxPath = readNgxModulePath(config);
+  const ngxPath = getNgxModulePath(config);
   if (!ngxPath) {
     statusBarItem.text = '$(git-branch) NGX: Not Configured';
     statusBarItem.tooltip = 'Ngx Module Linker: Click to configure ngx module path in settings.';

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { readNgxModulePath, getNgxModulePath } from '../services/config';
+import { getNgxModulePath } from '../services/config';
 import { getCurrentBranch } from '../services/git';
 import { isLinked } from '../services/link';
 import {
@@ -11,19 +11,16 @@ import {
   handleOpenNgxWindow,
   handleNpmStart,
   isCurrentWorkspaceNgxProject
-} from '../commands';
+} from '../commands/index';
+import { PanelState } from '../models/sidebar';
 import { updateStatusBar } from './statusBar';
 
-interface PanelState {
-  ngxPath?: string;
-  branch?: string;
-  linked: boolean;
-  isNgxProject: boolean;
-}
-
-async function loadState(projectRoot: string | undefined, config: vscode.WorkspaceConfiguration): Promise<PanelState> {
-  const ngxPath = readNgxModulePath(config);
-  const isNgxProject = await isCurrentWorkspaceNgxProject();
+async function loadState(
+  projectRoot: string | undefined,
+  config: vscode.WorkspaceConfiguration,
+  isNgxProject: boolean
+): Promise<PanelState> {
+  const ngxPath = getNgxModulePath(config);
   if (!ngxPath) {
     return {
       ngxPath: undefined,
@@ -48,6 +45,7 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'ngxModuleLinker.view';
 
   private view: vscode.WebviewView | undefined;
+  private isNgxProject: boolean | undefined;
 
   constructor(private readonly projectRoot: string | undefined, private config: vscode.WorkspaceConfiguration) {}
 
@@ -170,13 +168,19 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
     if (this.projectRoot) {
       await updateStatusBar(this.projectRoot, this.config);
     }
+    if (this.view) {
+      this.view.webview.postMessage({ type: 'stopStatusPolling' });
+    }
   }
 
   public async refresh(): Promise<void> {
     if (!this.view) {
       return;
     }
-    const state = await loadState(this.projectRoot, this.config);
+    const isNgxProject =
+      this.isNgxProject !== undefined ? this.isNgxProject : await isCurrentWorkspaceNgxProject();
+    this.isNgxProject = isNgxProject;
+    const state = await loadState(this.projectRoot, this.config, isNgxProject);
     this.view.webview.html = renderHtml(this.view.webview, state);
   }
 
@@ -488,12 +492,34 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
   ${bodyContent}
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
+    let statusRefreshIntervalId = undefined;
+
+    function startStatusPolling() {
+      if (statusRefreshIntervalId !== undefined) {
+        clearInterval(statusRefreshIntervalId);
+        statusRefreshIntervalId = undefined;
+      }
+
+      const startTime = Date.now();
+      const maxDurationMs = 3 * 60 * 1000; // poll for up to 3 minutes
+
+      statusRefreshIntervalId = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed > maxDurationMs) {
+          clearInterval(statusRefreshIntervalId);
+          statusRefreshIntervalId = undefined;
+          return;
+        }
+        vscode.postMessage({ type: 'refresh' });
+      }, 3000);
+    }
 
     function bindEvents() {
       const buildLibBtn = document.getElementById('buildLibBtn');
       if (buildLibBtn) {
         buildLibBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'buildLib' });
+          startStatusPolling();
         });
       }
 
@@ -501,6 +527,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       if (linkBtn) {
         linkBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'link' });
+          startStatusPolling();
         });
       }
 
@@ -508,6 +535,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       if (buildAndLinkBtn) {
         buildAndLinkBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'buildAndLink' });
+          startStatusPolling();
         });
       }
 
@@ -589,6 +617,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       if (npmStartBtn) {
         npmStartBtn.addEventListener('click', () => {
           vscode.postMessage({ type: 'npmStart' });
+          startStatusPolling();
         });
       }
     }
@@ -606,6 +635,9 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
           errorEl.textContent = message.message || '';
           errorEl.style.display = message.message ? '' : 'none';
         }
+      } else if (message.type === 'stopStatusPolling' && statusRefreshIntervalId !== undefined) {
+        clearInterval(statusRefreshIntervalId);
+        statusRefreshIntervalId = undefined;
       }
     });
   </script>
