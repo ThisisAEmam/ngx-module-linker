@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { getNgxModulePath } from '../services/config';
 import { NGX_PACKAGE_NAME, REPO_OWNER } from '../constants';
 import { getWorkspaceRoot } from '../services/project';
+import { Messages } from '../messages';
 import {
   NgxValidationResult,
   NgxPackageJson,
@@ -21,7 +22,7 @@ export function getOrCreateTerminal(name: string): vscode.Terminal {
 
 export async function requireNgxPath(
   config: vscode.WorkspaceConfiguration,
-  warningMessage = 'Ngx Module Linker: ngx module path not configured.'
+  warningMessage = Messages.warnings.ngxPathNotConfigured
 ): Promise<string | undefined> {
   const ngxPath = await getNgxModulePath(config);
   if (!ngxPath) {
@@ -41,7 +42,7 @@ export async function requireNgxPathAndRoot(
 
   const root = getWorkspaceRoot();
   if (!root) {
-    vscode.window.showWarningMessage('Ngx Module Linker: No workspace folder detected.');
+    vscode.window.showWarningMessage(Messages.warnings.noWorkspaceRoot);
     return undefined;
   }
 
@@ -75,7 +76,7 @@ async function readNgxPackageJson(packageJsonPath: string): Promise<PackageReadR
   } catch {
     return {
       ok: false,
-      error: 'Failed to read package.json in the detected project root.'
+      error: Messages.errors.readPackageJsonFailed
     };
   }
 
@@ -85,7 +86,7 @@ async function readNgxPackageJson(packageJsonPath: string): Promise<PackageReadR
   } catch {
     return {
       ok: false,
-      error: 'package.json in the detected project root is not valid JSON.'
+      error: Messages.errors.invalidPackageJson
     };
   }
 }
@@ -94,7 +95,7 @@ function validateNgxPackageJson(pkg: NgxPackageJson): PackageValidationResult {
   if (pkg.name !== NGX_PACKAGE_NAME) {
     return {
       ok: false,
-      error: `package.json name is "${pkg.name}", expected "${NGX_PACKAGE_NAME}".`
+      error: Messages.errors.packageNameMismatch(pkg.name, NGX_PACKAGE_NAME)
     };
   }
 
@@ -104,14 +105,14 @@ function validateNgxPackageJson(pkg: NgxPackageJson): PackageValidationResult {
   if (!repoOwner) {
     return {
       ok: false,
-      error: `the repoOwner in package.json is missing, expected "${REPO_OWNER}".`
+      error: Messages.errors.repoOwnerMissing(REPO_OWNER)
     };
   }
 
   if (repoOwner !== REPO_OWNER) {
     return {
       ok: false,
-      error: `the repoOwner in package.json is "${repoOwner}", expected "${REPO_OWNER}".`
+      error: Messages.errors.repoOwnerMismatch(repoOwner, REPO_OWNER)
     };
   }
 
@@ -125,7 +126,7 @@ export async function validateNgxPathAndGetRoot(inputPath: string): Promise<NgxV
   try {
     stat = await fs.promises.stat(normalized);
   } catch {
-    return { ok: false, error: 'Selected path does not exist.' };
+    return { ok: false, error: Messages.errors.pathDoesNotExist };
   }
 
   const startDir = stat.isDirectory() ? normalized : path.dirname(normalized);
@@ -134,7 +135,7 @@ export async function validateNgxPathAndGetRoot(inputPath: string): Promise<NgxV
   if (!root) {
     return {
       ok: false,
-      error: 'Could not find a package.json in the selected path or any of its parent folders.'
+      error: Messages.errors.packageJsonNotFoundInPath
     };
   }
 

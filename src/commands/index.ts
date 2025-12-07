@@ -27,7 +27,7 @@ export async function handleSwitchBranch(config: vscode.WorkspaceConfiguration) 
   const branches = await vscode.window.withProgress<string[]>(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'Ngx Module Linker: Fetching branches…',
+      title: Messages.progress.fetchingBranchesTitle,
       cancellable: false
     },
     async () => {
