@@ -12,10 +12,26 @@ import {
   PackageValidationResult
 } from '../models/commands';
 
-export function getOrCreateTerminal(name: string): vscode.Terminal {
-  const existing = vscode.window.terminals.find(t => t.name === name);
-  if (existing) {
-    return existing;
+const TERMINAL_NAME_PREFIX = 'Ngx Linker - ';
+const TERMINAL_NAME_BY_COMMAND: Record<string, string> = {
+  'ngxModuleLinker.buildLib': `${TERMINAL_NAME_PREFIX}Build Library`,
+  'ngxModuleLinker.buildAndLink': `${TERMINAL_NAME_PREFIX}Build and Link`,
+  'ngxModuleLinker.link': `${TERMINAL_NAME_PREFIX}Link`,
+  'ngxModuleLinker.npmStart': `${TERMINAL_NAME_PREFIX}NPM Start`
+};
+
+function getTerminalName(commandId: string): string {
+  return TERMINAL_NAME_BY_COMMAND[commandId] ?? `${TERMINAL_NAME_PREFIX}${commandId}`;
+}
+
+export function getOrCreateTerminal(name: string, forceCreate: boolean = false): vscode.Terminal {
+  if (!forceCreate) {
+    const existing = vscode.window.terminals.find(t => t.name === name);
+    if (existing) {
+      if (existing.exitStatus == null) {
+        return existing;
+      }
+    }
   }
   return vscode.window.createTerminal(name);
 }
@@ -169,8 +185,8 @@ export async function isCurrentWorkspaceNgxProject(): Promise<boolean> {
   return validationResult.ok;
 }
 
-export function runTerminalCommands(cwd: string, commands: string[]): void {
-  const terminal = getOrCreateTerminal('ngx-module');
+export function runTerminalCommands(commandId: string, cwd: string, commands: string[]): void {
+  const terminal = getOrCreateTerminal(getTerminalName(commandId));
   terminal.show(true);
   terminal.sendText(`cd "${cwd}"`);
   for (const cmd of commands) {

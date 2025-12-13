@@ -17,6 +17,7 @@ Ngx Module Linker makes it easy to work with a central `ngx-module` library whil
 - **Lets you switch ngx-module branches from a quick pick** (no need to open a terminal).
 - **Builds the ngx-module library for you**.
 - **Builds and links ngx-module into the current WebFactory DE Angular app** so you can immediately use the latest changes.
+- **Opens the ngx-module workspace in a separate VS Code window** and can start the library in watch/dev mode.
 
 This is designed for teams who share a single `ngx-module` library across several WebFactory DE Angular applications.
 
@@ -51,24 +52,28 @@ This is designed for teams who share a single `ngx-module` library across severa
 You only need to do this once per machine.
 
 1. Open the **Command Palette** in VS Code (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-2. Run: `Ngx Module: Configure ngx-module Path`.
+2. Run: `NGX Module Linker: Configure NGX module Path`.
 3. In the folder picker, select the **root folder of the shared `ngx-module` project** (the repo containing the library code).
 
 From now on, the extension will remember this directory and reuse it across sessions.
+
+This is stored as the VS Code setting:
+
+`ngxModuleLinker.ngxModulePath`
 
 ### 3. Build and link ngx-module into your current WebFactory DE Angular app
 
 When you’re inside a supported WebFactory DE Angular app:
 
 1. Either open the **Ngx Module Linker** sidebar (icon in the Activity Bar) and click **Build & Link**,
-   or open the **Command Palette** and run `Ngx Module: Build and Link`.
+   or open the **Command Palette** and run `NGX Module Linker: Build and Link`.
 2. Wait for the build and linking to finish.
 3. Start or refresh your WebFactory DE Angular app – it will now use the shared `ngx-module` from the directory you configured.
 
 If you only want to build the library without linking it:
 
 1. Open the **Command Palette**.
-2. Run: `Ngx Module: Build Library`.
+2. Run: `NGX Module Linker: Build Library`.
 
 ### 4. Check and change the ngx-module branch
 
@@ -77,7 +82,7 @@ You can see which `ngx-module` branch you are on directly in the VS Code status 
 To change it:
 
 1. Open the **Command Palette**.
-2. Run: `Ngx Module: Switch Branch`.
+2. Run: `NGX Module Linker: Switch Branch`.
 3. Pick the branch you want from the list.
 
 The status bar will update to reflect the new branch.
@@ -107,7 +112,33 @@ If you work on the extension itself:
 1. Run `npm install`.
 2. Press `F5` in VS Code to start a new Extension Host with this extension loaded.
 3. In a supported Angular project, open the Command Palette and try:
-   - `Ngx Module: Configure ngx-module Path`
-   - `Ngx Module: Switch Branch`
-   - `Ngx Module: Build Library`
-   - `Ngx Module: Build and Link`
+   - `NGX Module Linker: Configure NGX module Path`
+   - `NGX Module Linker: Switch Branch`
+   - `NGX Module Linker: Build Library`
+   - `NGX Module Linker: Link`
+   - `NGX Module Linker: Build and Link`
+   - `NGX Module Linker: Open NGX Module in New Window`
+   - `NGX Module Linker: Start NGX (npm start)`
+
+### Publishing to the VS Code Marketplace
+
+Publishing is done with `vsce`.
+
+Prerequisites:
+
+- You must be signed in to an Azure DevOps organization that hosts the VS Code Marketplace publisher.
+- You need a VS Code Marketplace Personal Access Token (PAT) with permission to publish.
+
+Common scripts:
+
+- `npm run package`
+- `npm run publish`
+- `npm run publish:patch`
+- `npm run publish:minor`
+- `npm run publish:major`
+- `npm run deploy`
+
+Notes:
+
+- `vsce publish` will prompt for a PAT if you are not already authenticated.
+- Ensure `publisher` in `package.json` matches the Marketplace publisher name.

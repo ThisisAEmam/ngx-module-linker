@@ -1,9 +1,10 @@
 {
   "name": "ngx-module-linker",
-  "displayName": "NGX Module Linker",
-  "description": "Internal helper to build and link ngx-module into WebFactory DE projects.",
+  "displayName": "NGX Module Linker - VOIS EG | Webfactory DE",
+  "description": "VS Code helper to build, link, and develop the shared @vfde-care/ngx-lib (ngx-module) across WebFactory DE Angular apps.",
   "version": "1.0.0",
-  "publisher": "vois-eg-webfactoryde",
+  "publisher": "vois-eg-webfactoryde-dev",
+  "openVsxPublisher": "vois-eg-webfactoryde",
   "author": {
     "name": "VOIS EG - WebFactory DE Team"
   },
@@ -12,11 +13,24 @@
     "type": "git",
     "url": "https://github.com/ThisisAEmam/ngx-module-linker.git"
   },
+  "bugs": {
+    "url": "https://github.com/ThisisAEmam/ngx-module-linker/issues"
+  },
+  "homepage": "https://github.com/ThisisAEmam/ngx-module-linker#readme",
   "engines": {
     "vscode": "^1.93.0"
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "angular",
+    "vois",
+    "vois eg",
+    "webfactory de",
+    "ngx module",
+    "ngx module linker",
+    "webfactory de ngx module linker"
   ],
   "activationEvents": [
     "workspaceContains:package.json"
@@ -62,8 +76,20 @@
         "title": "NGX Module Linker: Build Library"
       },
       {
-        "command": "ngxModuleLinker.buildAndLinkLib",
+        "command": "ngxModuleLinker.link",
+        "title": "NGX Module Linker: Link"
+      },
+      {
+        "command": "ngxModuleLinker.buildAndLink",
         "title": "NGX Module Linker: Build and Link"
+      },
+      {
+        "command": "ngxModuleLinker.openNgxWindow",
+        "title": "NGX Module Linker: Open NGX Module in New Window"
+      },
+      {
+        "command": "ngxModuleLinker.npmStart",
+        "title": "NGX Module Linker: Start NGX (npm start)"
       }
     ],
     "configuration": {
@@ -84,12 +110,21 @@
     "watch": "tsc -watch -p ./",
     "lint": "echo 'no lint configured'",
     "test": "echo 'no tests yet'",
-    "package": "mkdir -p releases && vsce package --out releases/ngx-module-linker-${npm_package_version}.vsix"
+    "check:published": "node ./scripts/check-published.js",
+    "package": "mkdir -p releases && vsce package --out releases/ngx-module-linker-$(node -p \"require('./package.json').version\").vsix",
+    "publish:vsce": "vsce publish --skip-duplicate",
+    "publish:ovsx": "ovsx publish releases/ngx-module-linker-$(node -p \"require('./package.json').version\").vsix",
+    "publish": "npm run check:published && npm run compile && npm run package && npm run publish:vsce && npm run publish:ovsx",
+    "publish:patch": "npm version patch --no-git-tag-version && npm run publish",
+    "publish:minor": "npm version minor --no-git-tag-version && npm run publish",
+    "publish:major": "npm version major --no-git-tag-version && npm run publish",
+    "deploy": "npm run publish"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.93.0",
-    "typescript": "^5.4.0",
-    "@vscode/vsce": "^3.7.1"
+    "@vscode/vsce": "^3.7.1",
+    "ovsx": "^0.10.7",
+    "typescript": "^5.4.0"
   }
 }

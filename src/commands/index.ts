@@ -71,7 +71,7 @@ export async function handleBuildLib(config: vscode.WorkspaceConfiguration) {
     return;
   }
 
-  runTerminalCommands(ngxPath, ['npm run build:lib']);
+  runTerminalCommands('ngxModuleLinker.buildLib', ngxPath, ['npm run build:lib']);
 }
 
 export async function handleBuildAndLink(config: vscode.WorkspaceConfiguration) {
@@ -81,7 +81,7 @@ export async function handleBuildAndLink(config: vscode.WorkspaceConfiguration) 
   }
 
   const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
-  runTerminalCommands(ctx.ngxPath, [
+  runTerminalCommands('ngxModuleLinker.buildAndLink', ctx.ngxPath, [
     'npm run build:lib',
     `cd "${ngxDist}"`,
     'npm link',
@@ -106,7 +106,7 @@ export async function handleNpmStart(config: vscode.WorkspaceConfiguration) {
     return;
   }
 
-  runTerminalCommands(ngxPath, ['npm start']);
+  runTerminalCommands('ngxModuleLinker.npmStart', ngxPath, ['npm start']);
 }
 
 export async function handleLink(config: vscode.WorkspaceConfiguration) {
@@ -116,7 +116,7 @@ export async function handleLink(config: vscode.WorkspaceConfiguration) {
   }
 
   const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
-  runTerminalCommands(ngxDist, [
+  runTerminalCommands('ngxModuleLinker.link', ngxDist, [
     'npm link',
     `cd "${ctx.root}"`,
     `npm link "${NGX_PACKAGE_NAME}"`
