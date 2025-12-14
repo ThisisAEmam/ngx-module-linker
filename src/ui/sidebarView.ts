@@ -494,7 +494,7 @@ function renderHtml(webview: vscode.Webview, state: PanelState): string {
       <div class="section">
         <div class="label">${Messages.ui.sections.buildLink}</div>
         <div class="button-row">
-          <button id="buildLibBtn" ${disableNgxActionsAttr}>${Messages.ui.buttons.buildLib}</button>
+          <button id="buildLibBtn">${Messages.ui.buttons.buildLib}</button>
           <button id="linkBtn" ${disableNgxActionsAttr}>${Messages.ui.buttons.link}</button>
           <button id="buildAndLinkBtn" ${disableNgxActionsAttr}>${Messages.ui.buttons.buildAndLink}</button>
         </div>

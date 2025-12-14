@@ -66,7 +66,7 @@ export const Messages = {
     },
     pathValidationErrorPrefix: (error: string) => `Ngx Module Linker: ${error}`,
     ngxProjectWarning:
-      'The currently opened window is the NGX module project. Open Window and Build/Link actions are disabled.',
+      'The currently opened window is the NGX module project. Open Window and Linking actions are disabled.',
     settingsSubtitle:
       'This value is stored in the VS Code setting <code>ngxModuleLinker.ngxModulePath</code>.',
   }
