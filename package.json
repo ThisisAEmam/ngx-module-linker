@@ -2,7 +2,7 @@
   "name": "ngx-module-linker",
   "displayName": "NGX Module Linker",
   "description": "VS Code helper to build, link, and develop the shared @vfde-care/ngx-lib (ngx-module) across WebFactory DE Angular apps.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "thisisaemam",
   "openVsxPublisher": "vois-eg-webfactoryde",
   "author": {
@@ -84,6 +84,10 @@
       {
         "command": "ngxModuleLinker.openNgxWindow",
         "title": "NGX Module Linker: Open NGX Module in New Window"
+      },
+      {
+        "command": "ngxModuleLinker.npmInstall",
+        "title": "NGX Module Linker: Install NGX (npm install)"
       },
       {
         "command": "ngxModuleLinker.npmStart",

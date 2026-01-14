@@ -52,9 +52,17 @@ export const Messages = {
       link: 'Link',
       buildAndLink: 'Build & Link',
       openNgxModule: 'Open Window',
+      npmInstall: 'Install dependencies',
       npmStart: 'Start NGX',
       changeBranch: 'Change Git branch',
       selectNgxFolder: 'Select Folder',
+      useLegacyPeerDeps: 'Use --legacy-peer-deps',
+      cleanInstallation: 'Clean installation',
+    },
+    confirmations: {
+      cleanInstallTitle: 'Clean Installation',
+      cleanInstallMessage: 'This action will remove "node_modules" directory before installing dependencies. Do you want to continue?',
+      cleanInstallConfirm: 'Confirm',
     },
     sections: {
       status: 'Status',

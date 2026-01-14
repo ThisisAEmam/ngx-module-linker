@@ -74,19 +74,20 @@ export async function handleBuildLib(config: vscode.WorkspaceConfiguration) {
   runTerminalCommands('ngxModuleLinker.buildLib', ngxPath, ['npm run build:lib']);
 }
 
-export async function handleBuildAndLink(config: vscode.WorkspaceConfiguration) {
+export async function handleBuildAndLink(config: vscode.WorkspaceConfiguration, useLegacy: boolean = false) {
   const ctx = await requireNgxPathAndRoot(config);
   if (!ctx) {
     return;
   }
 
   const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
+  const legacyFlag = useLegacy ? ' --legacy-peer-deps' : '';
   runTerminalCommands('ngxModuleLinker.buildAndLink', ctx.ngxPath, [
     'npm run build:lib',
     `cd "${ngxDist}"`,
-    'npm link',
+    `npm link${legacyFlag}`,
     `cd "${ctx.root}"`,
-    `npm link "${NGX_PACKAGE_NAME}"`
+    `npm link "${NGX_PACKAGE_NAME}"${legacyFlag}`
   ]);
 }
 
@@ -109,16 +110,43 @@ export async function handleNpmStart(config: vscode.WorkspaceConfiguration) {
   runTerminalCommands('ngxModuleLinker.npmStart', ngxPath, ['npm start']);
 }
 
-export async function handleLink(config: vscode.WorkspaceConfiguration) {
+export async function handleNpmInstall(config: vscode.WorkspaceConfiguration, isClean: boolean = false) {
+  const ngxPath = await requireNgxPath(config);
+  if (!ngxPath) {
+    return;
+  }
+
+  if (isClean) {
+    const confirmation = await vscode.window.showWarningMessage(
+      Messages.ui.confirmations.cleanInstallMessage,
+      { modal: true },
+      Messages.ui.confirmations.cleanInstallConfirm,
+    );
+
+    if (confirmation !== Messages.ui.confirmations.cleanInstallConfirm) {
+      return;
+    }
+
+    runTerminalCommands('ngxModuleLinker.npmInstall', ngxPath, [
+      'rm -rf node_modules/',
+      'npm install --legacy-peer-deps'
+    ]);
+  } else {
+    runTerminalCommands('ngxModuleLinker.npmInstall', ngxPath, ['npm install --legacy-peer-deps']);
+  }
+}
+
+export async function handleLink(config: vscode.WorkspaceConfiguration, useLegacy: boolean = false) {
   const ctx = await requireNgxPathAndRoot(config);
   if (!ctx) {
     return;
   }
 
   const ngxDist = path.join(ctx.ngxPath, NGX_DIST_RELATIVE);
+  const legacyFlag = useLegacy ? ' --legacy-peer-deps' : '';
   runTerminalCommands('ngxModuleLinker.link', ngxDist, [
-    'npm link',
+    `npm link${legacyFlag}`,
     `cd "${ctx.root}"`,
-    `npm link "${NGX_PACKAGE_NAME}"`
+    `npm link "${NGX_PACKAGE_NAME}"${legacyFlag}`
   ]);
 }

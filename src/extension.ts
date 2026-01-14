@@ -9,7 +9,8 @@ import {
   handleBuildAndLink,
   handleOpenNgxWindow,
   handleNpmStart,
-  handleLink
+  handleLink,
+  handleNpmInstall
 } from './commands';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -48,6 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('ngxModuleLinker.link', async () => {
       await handleLink(config);
+      await updateStatusBar(root, config);
     }),
     vscode.commands.registerCommand('ngxModuleLinker.buildAndLink', async () => {
       await handleBuildAndLink(config);
@@ -55,6 +57,9 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('ngxModuleLinker.openNgxWindow', async () => {
       await handleOpenNgxWindow(config);
+    }),
+    vscode.commands.registerCommand('ngxModuleLinker.npmInstall', async () => {
+      await handleNpmInstall(config);
     }),
     vscode.commands.registerCommand('ngxModuleLinker.npmStart', async () => {
       await handleNpmStart(config);
