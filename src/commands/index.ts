@@ -128,11 +128,11 @@ export async function handleNpmInstall(config: vscode.WorkspaceConfiguration, is
     }
 
     runTerminalCommands('ngxModuleLinker.npmInstall', ngxPath, [
-      'rm -rf node_modules/',
-      'npm install --legacy-peer-deps'
+      'rm -rf node_modules/ package-lock.json',
+      'npm run setup'
     ]);
   } else {
-    runTerminalCommands('ngxModuleLinker.npmInstall', ngxPath, ['npm install --legacy-peer-deps']);
+    runTerminalCommands('ngxModuleLinker.npmInstall', ngxPath, ['npm run setup']);
   }
 }
 

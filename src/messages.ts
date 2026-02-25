@@ -61,7 +61,7 @@ export const Messages = {
     },
     confirmations: {
       cleanInstallTitle: 'Clean Installation',
-      cleanInstallMessage: 'This action will remove "node_modules" directory before installing dependencies. Do you want to continue?',
+      cleanInstallMessage: 'This action will remove "node_modules" directory and "package-lock.json" file before installing dependencies. Do you want to continue?',
       cleanInstallConfirm: 'Confirm',
     },
     sections: {

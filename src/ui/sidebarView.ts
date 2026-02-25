@@ -23,6 +23,7 @@ async function loadState(
   isNgxProject: boolean
 ): Promise<PanelState> {
   const ngxPath = getNgxModulePath(config);
+  console.log('ngxPath', ngxPath);
   if (!ngxPath) {
     return {
       ngxPath: undefined,
@@ -108,7 +109,8 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
                 message: result.error
               });
             } else {
-              await this.config.update('ngxModulePath', result.rootPath, vscode.ConfigurationTarget.Global);
+              await this.config.update('ngxModulePath', result.rootPath === '' ? undefined : result.rootPath, vscode.ConfigurationTarget.Global);
+              shouldRefresh = true;
             }
           }
           break;
@@ -131,7 +133,8 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
                 message: result.error
               });
             } else {
-              await this.config.update('ngxModulePath', result.rootPath, vscode.ConfigurationTarget.Global);
+              await this.config.update('ngxModulePath', result.rootPath === '' ? undefined : result.rootPath, vscode.ConfigurationTarget.Global);
+              shouldRefresh = true;
             }
           }
           break;
@@ -185,6 +188,7 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
     if (!this.view) {
       return;
     }
+    this.config = vscode.workspace.getConfiguration('ngxModuleLinker');
     const isNgxProject =
       this.isNgxProject !== undefined ? this.isNgxProject : await isCurrentWorkspaceNgxProject();
     this.isNgxProject = isNgxProject;

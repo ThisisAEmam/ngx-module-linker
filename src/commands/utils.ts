@@ -136,6 +136,12 @@ function validateNgxPackageJson(pkg: NgxPackageJson): PackageValidationResult {
 }
 
 export async function validateNgxPathAndGetRoot(inputPath: string): Promise<NgxValidationResult> {
+  if (inputPath.trim() === '') {
+    return {
+      ok: true,
+      rootPath: ''
+    };
+  }
   const normalized = path.resolve(inputPath);
 
   let stat: fs.Stats;
