@@ -3,4 +3,9 @@ export interface PanelState {
   branch?: string;
   linked: boolean;
   isNgxProject: boolean;
-}
+  os: 'windows' | 'linux' | 'macos';
+  isNvmInstalled: boolean;
+  isBunInstalled: boolean;
+  isNodevmInstalled: boolean;
+  simplicityApachePath?: string;
+  simplicityApacheNodeVersion?: string;}

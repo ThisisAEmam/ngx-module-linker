@@ -2,7 +2,7 @@
   "name": "ngx-module-linker",
   "displayName": "NGX Module Linker",
   "description": "VS Code helper to build, link, and develop the shared @vfde-care/ngx-lib (ngx-module) across WebFactory DE Angular apps.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "ThisisAEmam"
   },
@@ -100,6 +100,16 @@
           "type": "string",
           "default": "",
           "description": "Absolute path to the ngx module project root (containing package.json and distribution/ngx-lib)."
+        },
+        "ngxModuleLinker.simplicityApachePath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the Simplicity Apache App project root."
+        },
+        "ngxModuleLinker.simplicityApacheNodeVersion": {
+          "type": "string",
+          "default": "",
+          "description": "Selected Node Version to use for Simplicity Apache App."
         }
       }
     }

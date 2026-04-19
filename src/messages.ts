@@ -42,7 +42,8 @@ export const Messages = {
   ui: {
     tabs: {
       linker: 'Linker',
-      settings: 'Settings'
+      settings: 'Settings',
+      simplicityApache: 'Simplicity Apache'
     },
     buttons: {
       browse: 'Browse',

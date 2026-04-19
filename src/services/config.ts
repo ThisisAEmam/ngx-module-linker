@@ -7,3 +7,19 @@ export function getNgxModulePath(config: vscode.WorkspaceConfiguration): string 
   }
   return undefined;
 }
+
+export function getSimplicityApachePath(config: vscode.WorkspaceConfiguration): string | undefined {
+  const path = config.get<string>('simplicityApachePath');
+  if (path && path.trim().length > 0) {
+    return path;
+  }
+  return undefined;
+}
+
+export function getSimplicityApacheNodeVersion(config: vscode.WorkspaceConfiguration): string | undefined {
+  const version = config.get<string>('simplicityApacheNodeVersion');
+  if (version && version.trim().length > 0) {
+    return version;
+  }
+  return undefined;
+}
