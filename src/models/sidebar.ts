@@ -8,4 +8,4 @@ export interface PanelState {
   isBunInstalled: boolean;
   isNodevmInstalled: boolean;
   simplicityApachePath?: string;
-  simplicityApacheNodeVersion?: string;}
+  selectedNodeVersion?: string;}

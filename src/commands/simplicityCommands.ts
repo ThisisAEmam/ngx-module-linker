@@ -91,7 +91,7 @@ function execPromise(command: string): Promise<{ stdout: string, stderr: string 
 }
 
 export async function handleUseNodeVersion(config: vscode.WorkspaceConfiguration, version: string) {
-  await config.update('simplicityApacheNodeVersion', version, vscode.ConfigurationTarget.Global);
+  await config.update('selectedNodeVersion', version, vscode.ConfigurationTarget.Global);
   
   const isWindows = process.platform === 'win32';
   const executable = isWindows ? 'nodevm' : 'nvm';

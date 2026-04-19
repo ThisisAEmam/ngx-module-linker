@@ -16,8 +16,8 @@ export function getSimplicityApachePath(config: vscode.WorkspaceConfiguration): 
   return undefined;
 }
 
-export function getSimplicityApacheNodeVersion(config: vscode.WorkspaceConfiguration): string | undefined {
-  const version = config.get<string>('simplicityApacheNodeVersion');
+export function getselectedNodeVersion(config: vscode.WorkspaceConfiguration): string | undefined {
+  const version = config.get<string>('selectedNodeVersion');
   if (version && version.trim().length > 0) {
     return version;
   }

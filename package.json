@@ -106,7 +106,7 @@
           "default": "",
           "description": "Absolute path to the Simplicity Apache App project root."
         },
-        "ngxModuleLinker.simplicityApacheNodeVersion": {
+        "ngxModuleLinker.selectedNodeVersion": {
           "type": "string",
           "default": "",
           "description": "Selected Node Version to use for Simplicity Apache App."

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
-import { getNgxModulePath, getSimplicityApachePath, getSimplicityApacheNodeVersion } from '../services/config';
+import { getNgxModulePath, getSimplicityApachePath, getselectedNodeVersion } from '../services/config';
 import { getCurrentBranch } from '../services/git';
 import { isLinked } from '../services/link';
 import {
@@ -24,7 +24,7 @@ async function loadState(
 ): Promise<PanelState> {
   const ngxPath = getNgxModulePath(config);
   const simplicityApachePath = getSimplicityApachePath(config);
-  const simplicityApacheNodeVersion = getSimplicityApacheNodeVersion(config);
+  const selectedNodeVersion = getselectedNodeVersion(config);
   
   const isWindows = process.platform === 'win32';
   const os: 'windows' | 'linux' | 'macos' = isWindows ? 'windows' : (process.platform === 'darwin' ? 'macos' : 'linux');
@@ -52,7 +52,7 @@ async function loadState(
     isBunInstalled,
     isNodevmInstalled,
     simplicityApachePath,
-    simplicityApacheNodeVersion
+    selectedNodeVersion
   };
 }
 
@@ -130,10 +130,10 @@ export class NgxSidebarProvider implements vscode.WebviewViewProvider {
     const isWindows = state.os === 'windows';
     const isReady = isWindows ? (state.isBunInstalled && state.isNodevmInstalled) : state.isNvmInstalled;
 
-    if (isReady && state.simplicityApacheNodeVersion) {
+    if (isReady && state.selectedNodeVersion) {
       // Import dynamically or ensure it's imported at the top
       const { handleUseNodeVersion } = require('../commands/simplicityCommands');
-      await handleUseNodeVersion(this.config, state.simplicityApacheNodeVersion);
+      await handleUseNodeVersion(this.config, state.selectedNodeVersion);
     }
 
     await this.refreshAndUpdateStatusBar();

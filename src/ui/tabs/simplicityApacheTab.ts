@@ -63,7 +63,7 @@ export class SimplicityApacheTab implements SidebarTab {
     }
 
     const versionOptions = NODE_VERSIONS_LIST.map(v => 
-      `<option value="${v}" ${state.simplicityApacheNodeVersion === v ? 'selected' : ''}>${v}</option>`
+      `<option value="${v}" ${state.selectedNodeVersion === v ? 'selected' : ''}>${v}</option>`
     ).join('');
 
     return `
@@ -72,7 +72,7 @@ export class SimplicityApacheTab implements SidebarTab {
         <div class="label">Node Version</div>
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
           <select id="nodeVersionSelect" class="settings-input" style="flex: 1;">
-            <option value="" disabled ${!state.simplicityApacheNodeVersion ? 'selected' : ''}>Select a version...</option>
+            <option value="" disabled ${!state.selectedNodeVersion ? 'selected' : ''}>Select a version...</option>
             ${versionOptions}
           </select>
           <button id="useNodeVersionBtn">Use Version</button>
