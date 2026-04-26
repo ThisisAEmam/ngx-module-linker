@@ -304,6 +304,29 @@ export class LinkerTab implements SidebarTab {
         });
       }
 
+      const dropdownItems = document.querySelectorAll('.dropdown-item');
+      dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          const action = item.getAttribute('data-action');
+          if (action === 'link-legacy') {
+            vscode.postMessage({ type: 'link', useLegacy: true });
+          } else if (action === 'buildAndLink-legacy') {
+            vscode.postMessage({ type: 'buildAndLink', useLegacy: true });
+          } else if (action === 'npmInstall-clean') {
+            vscode.postMessage({ type: 'npmInstall', isClean: true });
+          }
+          linkDropdown?.classList.remove('show');
+          buildAndLinkDropdown?.classList.remove('show');
+          npmInstallDropdown?.classList.remove('show');
+        });
+      });
+
+      document.addEventListener('click', () => {
+        linkDropdown?.classList.remove('show');
+        buildAndLinkDropdown?.classList.remove('show');
+        npmInstallDropdown?.classList.remove('show');
+      });
+
       const changeBranchBtn = document.getElementById('changeBranchBtn');
       if (changeBranchBtn) {
         changeBranchBtn.addEventListener('click', () => {
